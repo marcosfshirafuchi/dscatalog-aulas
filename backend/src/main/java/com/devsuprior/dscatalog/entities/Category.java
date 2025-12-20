@@ -1,10 +1,20 @@
 package com.devsuprior.dscatalog.entities;
 
+import jakarta.persistence.*;
+
 import java.io.Serializable;
 import java.util.Objects;
 
+@Entity
+//Define o nome da tabela do banco de dados
+@Table(name = "tb_category")
 public class Category implements Serializable {
     private static final long serialVersionUID = 1L;
+
+    //Definindo o id da tabela tb_category
+    @Id
+    //Gera automaticamente o número do Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
 
