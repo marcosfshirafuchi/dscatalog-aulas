@@ -1,5 +1,6 @@
 package com.devsuprior.dscatalog.resources;
 
+import com.devsuprior.dscatalog.dto.CategoryDTO;
 import com.devsuprior.dscatalog.entities.Category;
 import com.devsuprior.dscatalog.services.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +22,9 @@ public class CategoryResource {
     private CategoryService service;
 
     @GetMapping
-    public ResponseEntity<List<Category>> findAll(){
+    public ResponseEntity<List<CategoryDTO>> findAll(){
         // O list está buscando os registros da classe CategoryService pelo método findAll
-        List<Category> list = service.findAll();
+        List<CategoryDTO> list = service.findAll();
         return ResponseEntity.ok().body(list);
     }
 }

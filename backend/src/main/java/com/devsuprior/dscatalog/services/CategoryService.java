@@ -1,12 +1,15 @@
 package com.devsuprior.dscatalog.services;
 
+import com.devsuprior.dscatalog.dto.CategoryDTO;
 import com.devsuprior.dscatalog.entities.Category;
 import com.devsuprior.dscatalog.repositories.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
@@ -16,8 +19,20 @@ public class CategoryService {
     private CategoryRepository repository;
 
     @Transactional(readOnly = true)
-    public List<Category> findAll() {
-        return repository.findAll();
+    public List<CategoryDTO> findAll() {
+        List<Category> list = repository.findAll();
+        //Fazendo com lambda
+        //O map faz a conversão de cada elemento Category em CategoryDTO
+        List<CategoryDTO> listDto = list.stream().map( x-> new CategoryDTO(x))
+                //O collect converte stream para lista
+                .collect(Collectors.toList());
+        //Fazendo com for
+        /* Uma forma de colocar os elementos Category na lista Category DTO
+        List<CategoryDTO> listDto = new ArrayList<>();
+        for(Category cat: list){
+            listDto.add(new CategoryDTO(cat));
+        }*/
+        return listDto;
     }
 
 }
