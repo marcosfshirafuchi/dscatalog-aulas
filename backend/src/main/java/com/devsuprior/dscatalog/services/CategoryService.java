@@ -2,6 +2,7 @@ package com.devsuprior.dscatalog.services;
 
 import com.devsuprior.dscatalog.dto.CategoryDTO;
 import com.devsuprior.dscatalog.entities.Category;
+import com.devsuprior.dscatalog.exceptions.EntityNotFoundException;
 import com.devsuprior.dscatalog.repositories.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,8 @@ public class CategoryService {
     @Transactional(readOnly = true)
     public CategoryDTO findById(Long id) {
         Optional<Category> obj = repository.findById(id);
-        Category entity = obj.get();
+        //O orElseThrow vai permitir uma chamada de exceção caso não encontre o id
+        Category entity = obj.orElseThrow(() -> new EntityNotFoundException("Entity not found"));
         return new CategoryDTO(entity);
     }
 }
