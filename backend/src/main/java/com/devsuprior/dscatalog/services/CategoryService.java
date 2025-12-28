@@ -8,6 +8,8 @@ import com.devsuprior.dscatalog.repositories.CategoryRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,13 +26,11 @@ public class CategoryService {
     private CategoryRepository repository;
 
     @Transactional(readOnly = true)
-    public List<CategoryDTO> findAll() {
-        List<Category> list = repository.findAll();
+    public Page<CategoryDTO> findAllPaged(PageRequest pageRequest) {
+        Page<Category> list = repository.findAll(pageRequest);
         //Fazendo com lambda
         //O map faz a conversão de cada elemento Category em CategoryDTO
-        List<CategoryDTO> listDto = list.stream().map( x-> new CategoryDTO(x))
-                //O collect converte stream para lista
-                .collect(Collectors.toList());
+        Page<CategoryDTO> listDto = list.map( x-> new CategoryDTO(x));
         //Fazendo com for
         /* Uma forma de colocar os elementos Category na lista Category DTO
         List<CategoryDTO> listDto = new ArrayList<>();
