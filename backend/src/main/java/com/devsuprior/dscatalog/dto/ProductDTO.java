@@ -2,9 +2,6 @@ package com.devsuprior.dscatalog.dto;
 
 import com.devsuprior.dscatalog.entities.Category;
 import com.devsuprior.dscatalog.entities.Product;
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 
 import java.io.Serializable;
 import java.time.Instant;
