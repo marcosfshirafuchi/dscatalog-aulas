@@ -73,6 +73,5 @@ public class ProductRepositoryTest {
 
         //●	Assert: declare o que deveria acontecer (resultado esperado)
         Assertions.assertTrue(result.isEmpty());
-    
     }
 }
