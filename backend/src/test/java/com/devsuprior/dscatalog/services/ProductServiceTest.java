@@ -15,6 +15,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.mockito.Mockito.*;
+
 // Ativa o Mockito para inicializar automaticamente @Mock e @InjectMocks
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
@@ -46,7 +48,8 @@ class ProductServiceTest {
         // Configura o comportamento do mock:
         // quando o service chamar repository.existsById(1L),
         // o mock responderá "true", simulando que o produto existe
-        Mockito.when(repository.existsById(existingId)).thenReturn(true);
+        //Mockito.when(repository.existsById(existingId)).thenReturn(true);
+        when(repository.existsById(existingId)).thenReturn(true);
 
         // Esta linha foi comentada porque:
         // - ESTE teste não usa nonExistingId
@@ -57,7 +60,8 @@ class ProductServiceTest {
 
         // Simula que o delete funciona normalmente
         // (não lança exceção quando o ID existe)
-        Mockito.doNothing().when(repository).deleteById(existingId);
+        //Mockito.doNothing().when(repository).deleteById(existingId);
+        doNothing().when(repository).deleteById(existingId);
     }
 
     @Test
@@ -69,11 +73,13 @@ class ProductServiceTest {
 
         // Garante que o service realmente verificou
         // se o produto existia antes de deletar
-        Mockito.verify(repository, Mockito.times(1))
+        /*Mockito.verify(repository, Mockito.times(1))
+                .existsById(existingId);*/
+        verify(repository, Mockito.times(1))
                 .existsById(existingId);
 
         // Garante que o delete foi chamado exatamente 1 vez
-        Mockito.verify(repository, Mockito.times(1))
+        verify(repository, Mockito.times(1))
                 .deleteById(existingId);
     }
 }
