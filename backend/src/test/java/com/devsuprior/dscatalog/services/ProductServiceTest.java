@@ -1,5 +1,6 @@
 package com.devsuprior.dscatalog.services;
 
+import com.devsuprior.dscatalog.exceptions.DatabaseException;
 import com.devsuprior.dscatalog.exceptions.ResourceNotFoundException;
 import com.devsuprior.dscatalog.repositories.ProductRepository;
 
@@ -14,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import static org.mockito.Mockito.*;
 
@@ -50,12 +52,15 @@ public class ProductServiceTest {
     // ID que representa um produto INEXISTENTE no banco
     private long nonExistingId;
 
+    private long dependentId;
+
     @BeforeEach
     void setUp() {
         // Inicializa os valores usados nos testes
         // Executa antes de cada método @Test
         existingId = 1L;
-        nonExistingId = 2L;
+        nonExistingId = 1000L;
+        dependentId = 4L;
     }
 
     @Test
@@ -85,6 +90,16 @@ public class ProductServiceTest {
         // 2) chamou o delete corretamente
         Mockito.verify(repository, times(1)).existsById(existingId);
         Mockito.verify(repository, times(1)).deleteById(existingId);
+    }
+
+    @Test
+    public void deleteShouldThrowDatabaseExceptionWhenDepedentId(){
+        //Vai dar erro de integridade referencial quando o delete for executado
+        Mockito.doThrow(DataIntegrityViolationException.class).when(repository).deleteById(dependentId);
+        Mockito.when(repository.existsById(dependentId)).thenReturn(true);
+        Assertions.assertThrows(DatabaseException.class, () -> {
+            service.delete(dependentId);
+        });
     }
 
     @Test
