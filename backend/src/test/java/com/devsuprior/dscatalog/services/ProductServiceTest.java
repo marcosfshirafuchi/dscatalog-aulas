@@ -94,12 +94,29 @@ public class ProductServiceTest {
 
     @Test
     public void deleteShouldThrowDatabaseExceptionWhenDepedentId(){
-        //Vai dar erro de integridade referencial quando o delete for executado
+
+        // =========================
+        // ARRANGE (Preparação)
+        // =========================
+        // Configura o mock para simular um erro de integridade referencial
+        // (ex: tentar apagar um produto que tem pedidos associados)
         Mockito.doThrow(DataIntegrityViolationException.class).when(repository).deleteById(dependentId);
         Mockito.when(repository.existsById(dependentId)).thenReturn(true);
+
+        // =========================
+        // ACT + ASSERT (Ação + Verificação)
+        // =========================
+        // Verifica se o service captura a exceção de banco e lança
+        // a exceção personalizada da aplicação (DatabaseException)
         Assertions.assertThrows(DatabaseException.class, () -> {
             service.delete(dependentId);
         });
+
+        // =========================
+        // ASSERT (Verificações adicionais)
+        // =========================
+        // Garante que o método deleteById foi chamado
+        Mockito.verify(repository, times(1)).deleteById(dependentId);
     }
 
     @Test
