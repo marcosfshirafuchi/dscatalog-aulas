@@ -1,21 +1,28 @@
 package com.devsuprior.dscatalog.services;
 
+import com.devsuprior.dscatalog.entities.Product;
 import com.devsuprior.dscatalog.exceptions.DatabaseException;
 import com.devsuprior.dscatalog.exceptions.ResourceNotFoundException;
 import com.devsuprior.dscatalog.repositories.ProductRepository;
 
 // JUnit 5
+import com.devsuprior.dscatalog.tests.Factory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 // Mockito + JUnit 5
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 import static org.mockito.Mockito.*;
 
@@ -52,7 +59,14 @@ public class ProductServiceTest {
     // ID que representa um produto INEXISTENTE no banco
     private long nonExistingId;
 
+    // ID de um produto que tem dependência (integridade referencial)
     private long dependentId;
+
+    // Objeto Page do Spring Data para simular retorno paginado
+    private PageImpl<Product> page;
+    
+    // Entidade Product usada nos testes
+    private Product product;
 
     @BeforeEach
     void setUp() {
@@ -61,6 +75,24 @@ public class ProductServiceTest {
         existingId = 1L;
         nonExistingId = 1000L;
         dependentId = 4L;
+        
+        // Cria uma instância de produto válida
+        product = Factory.createProduct();
+        
+        // Cria uma página contendo o produto instanciado
+        page = new PageImpl<>(List.of(product));
+        
+        // Configura o mock para retornar a página criada quando buscar todos
+        Mockito.lenient().when(repository.findAll((Pageable)ArgumentMatchers.any())).thenReturn(page);
+        
+        // Configura o mock para retornar o produto quando salvar
+        Mockito.lenient().when(repository.save(ArgumentMatchers.any())).thenReturn(product);
+
+        // Configura o mock para retornar o produto (Optional.of) quando buscar pelo ID existente
+        Mockito.lenient().when(repository.findById(existingId)).thenReturn(java.util.Optional.of(product));
+
+        // Configura o mock para retornar vazio (Optional.empty) quando buscar pelo ID inexistente
+        Mockito.lenient().when(repository.findById(nonExistingId)).thenReturn(java.util.Optional.empty());
     }
 
     @Test
