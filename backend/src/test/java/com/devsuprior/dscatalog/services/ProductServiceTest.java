@@ -1,5 +1,6 @@
 package com.devsuprior.dscatalog.services;
 
+import com.devsuprior.dscatalog.dto.ProductDTO;
 import com.devsuprior.dscatalog.entities.Product;
 import com.devsuprior.dscatalog.exceptions.DatabaseException;
 import com.devsuprior.dscatalog.exceptions.ResourceNotFoundException;
@@ -19,7 +20,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -93,6 +96,31 @@ public class ProductServiceTest {
 
         // Configura o mock para retornar vazio (Optional.empty) quando buscar pelo ID inexistente
         Mockito.lenient().when(repository.findById(nonExistingId)).thenReturn(java.util.Optional.empty());
+    }
+
+    @Test
+    public void findAllPagedShouldReturnPage(){
+        
+        // =========================
+        // ARRANGE (Preparação)
+        // =========================
+        // Cria um objeto Pageable para simular a paginação (página 0, tamanho 10)
+        Pageable pageable = PageRequest.of(0,10);
+
+        // =========================
+        // ACT (Ação)
+        // =========================
+        // Chama o método findAllPaged do service passando o objeto de paginação
+        Page<ProductDTO> result = service.findAllPaged(pageable);
+
+        // =========================
+        // ASSERT (Verificação)
+        // =========================
+        // Verifica se o resultado não é nulo
+        Assertions.assertNotNull(result);
+
+        // Verifica se o método findAll do repository foi chamado exatamente uma vez
+        Mockito.verify(repository, Mockito.times(1)).findAll(pageable);
     }
 
     @Test
