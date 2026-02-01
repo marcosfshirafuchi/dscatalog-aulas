@@ -1,13 +1,16 @@
 package com.devsuprior.dscatalog.services;
 
 import com.devsuprior.dscatalog.dto.ProductDTO;
+import com.devsuprior.dscatalog.entities.Category;
 import com.devsuprior.dscatalog.entities.Product;
 import com.devsuprior.dscatalog.exceptions.DatabaseException;
 import com.devsuprior.dscatalog.exceptions.ResourceNotFoundException;
+import com.devsuprior.dscatalog.repositories.CategoryRepository;
 import com.devsuprior.dscatalog.repositories.ProductRepository;
 
 // JUnit 5
 import com.devsuprior.dscatalog.tests.Factory;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,6 +55,10 @@ public class ProductServiceTest {
     @Mock
     private ProductRepository repository;
 
+    // Mock do repositório de categorias
+    @Mock
+    private CategoryRepository categoryRepository;
+
     // =========================
     // DADOS DE APOIO (TEST FIXTURES)
     // =========================
@@ -67,9 +74,15 @@ public class ProductServiceTest {
 
     // Objeto Page do Spring Data para simular retorno paginado
     private PageImpl<Product> page;
-    
+
     // Entidade Product usada nos testes
     private Product product;
+
+    // Entidade Category usada nos testes
+    private Category category;
+
+    // DTO de produto usado nos testes
+    private ProductDTO productDTO;
 
     @BeforeEach
     void setUp() {
@@ -78,10 +91,14 @@ public class ProductServiceTest {
         existingId = 1L;
         nonExistingId = 1000L;
         dependentId = 4L;
-        
+
         // Cria uma instância de produto válida
         product = Factory.createProduct();
-        
+
+        category = Factory.createCategory();
+
+        productDTO = Factory.createProductDTO();
+
         // Cria uma página contendo o produto instanciado
         page = new PageImpl<>(List.of(product));
         
@@ -91,6 +108,18 @@ public class ProductServiceTest {
         // Configura o mock para retornar o produto quando salvar
         Mockito.lenient().when(repository.save(ArgumentMatchers.any())).thenReturn(product);
 
+        // Configura o mock para retornar o produto quando buscar referência pelo ID existente (usado no update)
+        Mockito.lenient().when(repository.getReferenceById(existingId)).thenReturn(product);
+
+        // Configura o mock para lançar exceção quando buscar referência pelo ID inexistente
+        Mockito.lenient().when(repository.getReferenceById(nonExistingId)).thenThrow(EntityNotFoundException.class);
+
+        // Configura o mock do categoryRepository para retornar uma categoria quando buscar referência pelo ID existente
+        Mockito.lenient().when(categoryRepository.getReferenceById(existingId)).thenReturn(category);
+
+        // Configura o mock do categoryRepository para lançar exceção quando buscar referência pelo ID inexistente
+        Mockito.lenient().when(categoryRepository.getReferenceById(nonExistingId)).thenThrow(EntityNotFoundException.class);
+
         // Configura o mock para retornar o produto (Optional.of) quando buscar pelo ID existente
         Mockito.lenient().when(repository.findById(existingId)).thenReturn(java.util.Optional.of(product));
 
@@ -99,8 +128,38 @@ public class ProductServiceTest {
     }
 
     @Test
+    public void updateShouldThrowResourceNotFoundExceptionWhenIdDoesNotExists(){
+        // Verifica se o método update lança ResourceNotFoundException quando o ID não existe
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            service.update(nonExistingId, productDTO);
+        });
+    }
+
+    @Test
+    public void updateShouldReturnAProductDTOWhenIdExists(){
+        // Executa o update com um ID existente e verifica se o retorno não é nulo
+        ProductDTO result = service.update(existingId, productDTO);
+        Assertions.assertNotNull(result);
+    }
+
+    @Test
+    public void findByIdShouldReturnAProductDTOWhenIdExists(){
+       // Executa o findById com um ID existente e verifica se o retorno não é nulo
+       ProductDTO result = service.findById(existingId);
+       Assertions.assertNotNull(result);
+    }
+
+    @Test
+    public void findByIdShouldThrowResourceNotFoundExceptionWhenIdDoesNotExists(){
+        // Verifica se o método findById lança ResourceNotFoundException quando o ID não existe
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            service.findById(nonExistingId);
+        });
+    }
+
+    @Test
     public void findAllPagedShouldReturnPage(){
-        
+
         // =========================
         // ARRANGE (Preparação)
         // =========================
