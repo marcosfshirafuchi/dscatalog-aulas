@@ -9,8 +9,10 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.List;
 
@@ -18,24 +20,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// Carrega apenas a camada WEB (Controller)
-// Não sobe todo o contexto Spring, nem banco, nem services reais
-// Apenas o ProductResource e componentes necessários para MVC
+// @WebMvcTest: Carrega o contexto WEB para testar apenas a camada de Controller (ProductResource).
+// Não carrega o contexto completo da aplicação (Repositories, Services reais, etc).
 @WebMvcTest(ProductResource.class)
 public class ProductResourceTest {
 
-    // MockMvc é usado para simular requisições HTTP
-    // sem subir servidor real (Tomcat, Jetty, etc.)
+    // MockMvc: Objeto principal para realizar chamadas simuladas aos endpoints REST.
     @Autowired
     private MockMvc mockMvc;
 
-    // Cria um mock Spring do ProductService
-    // Diferente do @Mock do Mockito: aqui o mock
-    // é gerenciado pelo contexto Spring
+    // @MockitoBean: Cria um Mock do ProductService e o injeta no contexto do Spring,
+    // substituindo o bean real. Isso permite simular o comportamento do serviço.
     @MockitoBean
     private ProductService service;
 
-    // DTO usado como resposta simulada
     private ProductDTO productDTO;
 
     // Page que simula uma resposta paginada da API
@@ -60,18 +58,13 @@ public class ProductResourceTest {
 
     @Test
     public void findAllShouldReturnPage() throws Exception {
+        // perform: Executa a requisição
+        // get: Método HTTP GET na rota /products
+        // accept: Define que o cliente aceita receber JSON como resposta
+        ResultActions result = mockMvc.perform(get("/products")
+                .accept(MediaType.APPLICATION_JSON));
 
-        // =========================
-        // ACT (Ação)
-        // =========================
-        // Simula uma requisição HTTP GET para /products
-        // usando o MockMvc
-        mockMvc.perform(get("/products"))
-
-                // =========================
-                // ASSERT (Verificação)
-                // =========================
-                // Espera que a resposta HTTP seja 200 OK
-                .andExpect(status().isOk());
+        // Verifica se o status da resposta é 200 OK
+        result.andExpect(status().isOk());
     }
 }
