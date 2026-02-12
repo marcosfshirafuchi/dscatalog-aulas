@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -47,6 +48,8 @@ public class ProductResourceTest {
 
     private Long nonExistingId;
 
+    private long dependentId;
+
     private ProductDTO productDTO;
 
     // Page que simula uma resposta paginada da API
@@ -57,6 +60,7 @@ public class ProductResourceTest {
 
         existingId = 1L;
         nonExistingId = 2L;
+        dependentId = 3L;
 
         // Cria um ProductDTO fake usando a Factory
         // (classe utilitária comum em testes)
@@ -83,6 +87,14 @@ public class ProductResourceTest {
         // Configura o mock para lançar exceção ao tentar atualizar um ID inexistente
         Mockito.when(service.update(eq(nonExistingId), any())).thenThrow(ResourceNotFoundException.class);
 
+        // Configura o mock para não fazer nada (void) quando deletar um ID existente
+        Mockito.doNothing().when(service).delete(existingId);
+
+        // Configura o mock para lançar ResourceNotFoundException quando tentar deletar um ID inexistente
+        Mockito.doThrow(ResourceNotFoundException.class).when(service).delete(nonExistingId);
+
+        // Configura o mock para lançar DataIntegrityViolationException quando tentar deletar um ID dependente (com integridade referencial)
+        Mockito.doThrow(DataIntegrityViolationException.class).when(service).delete(dependentId);
     }
 
     @Test
