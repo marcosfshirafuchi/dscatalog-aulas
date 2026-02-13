@@ -21,8 +21,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -81,6 +80,9 @@ public class ProductResourceTest {
         // Configura o mock para lançar exceção quando o ID não existir
         Mockito.when(service.findById(nonExistingId)).thenThrow(ResourceNotFoundException.class);
 
+        // Configura o mock para retornar o DTO quando o insert for chamado
+        Mockito.when(service.insert(any())).thenReturn(productDTO);
+
         // Configura o mock para retornar o DTO atualizado quando o ID existir
         Mockito.when(service.update(eq(existingId), any())).thenReturn(productDTO);
 
@@ -95,6 +97,60 @@ public class ProductResourceTest {
 
         // Configura o mock para lançar DataIntegrityViolationException quando tentar deletar um ID dependente (com integridade referencial)
         Mockito.doThrow(DataIntegrityViolationException.class).when(service).delete(dependentId);
+    }
+
+    @Test
+    public void deleteShouldReturnNoContentWhenIdExists() throws Exception{
+        // ARRANGE: instancie os objetos necessários
+        // (O ID existente já foi configurado no setUp)
+
+        // ACT: execute as ações necessárias
+        // Realiza a requisição DELETE para /products/{id} passando o ID existente
+        ResultActions result = mockMvc.perform(delete("/products/{id}",existingId)
+                .accept(MediaType.APPLICATION_JSON));
+
+        // ASSERT: declare o que deveria acontecer (resultado esperado)
+        // Verifica se o status é 204 No Content
+        result.andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void deleteShouldReturnNotFoundWhenIdDoesNotExists() throws Exception{
+        // ARRANGE: instancie os objetos necessários
+        // (O ID não existente já foi configurado no setUp para lançar exceção)
+
+        // ACT: execute as ações necessárias
+        // Realiza a requisição DELETE para /products/{id} passando o ID inexistente
+        ResultActions result = mockMvc.perform(delete("/products/{id}",nonExistingId)
+                .accept(MediaType.APPLICATION_JSON));
+
+        // ASSERT: declare o que deveria acontecer (resultado esperado)
+        // Verifica se o status é 404 Not Found
+        result.andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void updateShouldReturnProductDTOCreated() throws Exception{
+
+        // ARRANGE: instancie os objetos necessários
+        // Converte o objeto ProductDTO para uma String JSON
+        String jsonBody = objectMapper.writeValueAsString(productDTO);
+
+
+        // ACT: execute as ações necessárias
+        // Realiza uma requisição POST para /products
+        ResultActions result = mockMvc.perform(post("/products")
+                .content(jsonBody)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON));
+
+        // ASSERT: declare o que deveria acontecer (resultado esperado)
+        // Verifica se o status é 201 Created
+        result.andExpect(status().isCreated());
+        // Verifica se os campos do JSON existem na resposta
+        result.andExpect(jsonPath("$.id").exists());
+        result.andExpect(jsonPath("$.name").exists());
+        result.andExpect(jsonPath("$.description").exists());
     }
 
     @Test
