@@ -1,19 +1,41 @@
 package com.devsuprior.dscatalog.entities;
 
+import jakarta.persistence.*;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+// @Entity: Define que a classe é uma entidade JPA que será mapeada para uma tabela no banco de dados.
+@Entity
+// @Table: Define o nome da tabela no banco de dados (tb_user).
+@Table(name = "tb_user")
 public class User implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    // @Id: Define que o campo id é a chave primária da tabela.
+    @Id
+    // @GeneratedValue: Define a estratégia de geração automática de IDs (Auto-incremento no banco).
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String firstName;
     private String lastName;
+    
+    // @Column(unique = true): Opcionalmente poderia ser usado para garantir que o email seja único no banco.
     private String email;
     private String password;
 
+    // @ManyToMany: Define um relacionamento de Muitos para Muitos entre Usuários e Perfis (Roles).
+    @ManyToMany
+    // @JoinTable: Define as configurações da tabela auxiliar de junção (N para N).
+    @JoinTable(name = "tb_user_role",
+            // joinColumns: Define a chave estrangeira da própria entidade (User) na tabela de junção.
+            joinColumns = @JoinColumn(name = "user_id"),
+            // inverseJoinColumns: Define a chave estrangeira da outra entidade (Role) na tabela de junção.
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    // Set: Garante que não haverá duplicidade de Perfis (Roles) para o mesmo Usuário.
     private Set<Role> roles = new HashSet<>();
 
     public User(){
