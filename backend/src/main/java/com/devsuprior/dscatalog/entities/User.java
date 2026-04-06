@@ -1,6 +1,7 @@
 package com.devsuprior.dscatalog.entities;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.Fetch;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -27,7 +28,7 @@ public class User implements Serializable {
     private String password;
 
     // @ManyToMany: Define um relacionamento de Muitos para Muitos entre Usuários e Perfis (Roles).
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     // @JoinTable: Define as configurações da tabela auxiliar de junção (N para N).
     @JoinTable(name = "tb_user_role",
             // joinColumns: Define a chave estrangeira da própria entidade (User) na tabela de junção.

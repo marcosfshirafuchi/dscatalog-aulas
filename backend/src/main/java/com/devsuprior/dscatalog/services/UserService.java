@@ -2,12 +2,15 @@ package com.devsuprior.dscatalog.services;
 
 import com.devsuprior.dscatalog.dto.CategoryDTO;
 import com.devsuprior.dscatalog.dto.ProductDTO;
+import com.devsuprior.dscatalog.dto.RoleDTO;
+import com.devsuprior.dscatalog.dto.UserDTO;
 import com.devsuprior.dscatalog.entities.Category;
 import com.devsuprior.dscatalog.entities.Product;
+import com.devsuprior.dscatalog.entities.Role;
+import com.devsuprior.dscatalog.entities.User;
 import com.devsuprior.dscatalog.exceptions.DatabaseException;
 import com.devsuprior.dscatalog.exceptions.ResourceNotFoundException;
-import com.devsuprior.dscatalog.repositories.CategoryRepository;
-import com.devsuprior.dscatalog.repositories.ProductRepository;
+import com.devsuprior.dscatalog.repositories.RoleRepository;
 import com.devsuprior.dscatalog.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,21 +24,21 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
-public class ProductService {
+public class UserService {
 
     //Coloca a anotação Autowired para fazer a injeção de dependencia da classe ProductRepository
     @Autowired
-    private ProductRepository repository;
+    private UserRepository repository;
 
     @Autowired
-    private CategoryRepository categoryRepository;
+    private RoleRepository roleRepository;
 
     @Transactional(readOnly = true)
-    public Page<ProductDTO> findAllPaged(Pageable pageable) {
-        Page<Product> list = repository.findAll(pageable);
+    public Page<UserDTO> findAllPaged(Pageable pageable) {
+        Page<User> list = repository.findAll(pageable);
         //Fazendo com lambda
         //O map faz a conversão de cada elemento Product em ProductDTO
-        Page<ProductDTO> listDto = list.map( x-> new ProductDTO(x));
+        Page<UserDTO> listDto = list.map(x-> new UserDTO(x));
         //Fazendo com for
         /* Uma forma de colocar os elementos Product na lista Product DTO
         List<ProductDTO> listDto = new ArrayList<>();
@@ -45,28 +48,28 @@ public class ProductService {
         return listDto;
     }
     @Transactional(readOnly = true)
-    public ProductDTO findById(Long id) {
-        Optional<Product> obj = repository.findById(id);
+    public UserDTO findById(Long id) {
+        Optional<User> obj = repository.findById(id);
         //O orElseThrow vai permitir uma chamada de exceção caso não encontre o id
-        Product entity = obj.orElseThrow(() -> new ResourceNotFoundException("Entity not found"));
-        return new ProductDTO(entity, entity.getCategories());
+        User entity = obj.orElseThrow(() -> new ResourceNotFoundException("Entity not found"));
+        return new UserDTO(entity);
     }
 
     @Transactional
-    public ProductDTO insert(ProductDTO dto) {
-        Product entity = new Product();
+    public UserDTO insert(UserDTO dto) {
+        User entity = new User();
         copyDtoToEntity(dto, entity);
         entity = repository.save(entity);
-        return new ProductDTO(entity, entity.getCategories());
+        return new UserDTO(entity);
     }
 
     @Transactional
-    public ProductDTO update(Long id, ProductDTO dto) {
+    public UserDTO update(Long id, UserDTO dto) {
         try {
-            Product entity = repository.getReferenceById(id);
+            User entity = repository.getReferenceById(id);
             copyDtoToEntity(dto, entity);
             entity = repository.save(entity);
-            return new ProductDTO(entity, entity.getCategories());
+            return new UserDTO(entity);
         } catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Id not found " + id);
         }
@@ -85,17 +88,15 @@ public class ProductService {
         }
     }
 
-    private void copyDtoToEntity(ProductDTO dto, Product entity) {
-        entity.setName(dto.getName());
-        entity.setDescription(dto.getDescription());
-        entity.setDate(dto.getDate());
-        entity.setImgUrl(dto.getImgUrl());
-        entity.setPrice(dto.getPrice());
+    private void copyDtoToEntity(UserDTO dto, User entity) {
+        entity.setFirstName(dto.getFirstName());
+        entity.setLastName(dto.getLastName());
+        entity.setEmail(dto.getEmail());
 
-        entity.getCategories().clear();
-        for (CategoryDTO catDto: dto.getCategories()){
-            Category category = categoryRepository.getReferenceById(catDto.getId());
-            entity.getCategories().add(category);
+        entity.getRoles().clear();
+        for (RoleDTO roleDto: dto.getRoles()){
+            Role role = roleRepository.getReferenceById(roleDto.getId());
+            entity.getRoles().add(role);
         }
     }
 }

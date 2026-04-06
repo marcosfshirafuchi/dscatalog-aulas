@@ -14,7 +14,7 @@ import java.util.Optional;
 public class ProductRepositoryTest {
 
     @Autowired
-    private ProductRepository repository;
+    private UserRepository repository;
 
     private long existingId;
     private long nonExistingId;

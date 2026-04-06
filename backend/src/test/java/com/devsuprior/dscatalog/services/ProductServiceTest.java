@@ -6,7 +6,7 @@ import com.devsuprior.dscatalog.entities.Product;
 import com.devsuprior.dscatalog.exceptions.DatabaseException;
 import com.devsuprior.dscatalog.exceptions.ResourceNotFoundException;
 import com.devsuprior.dscatalog.repositories.CategoryRepository;
-import com.devsuprior.dscatalog.repositories.ProductRepository;
+import com.devsuprior.dscatalog.repositories.UserRepository;
 
 // JUnit 5
 import com.devsuprior.dscatalog.tests.Factory;
@@ -53,7 +53,7 @@ public class ProductServiceTest {
     // Cria um mock do ProductRepository
     // Nenhuma chamada real ao banco de dados será feita
     @Mock
-    private ProductRepository repository;
+    private UserRepository repository;
 
     // Mock do repositório de categorias
     @Mock

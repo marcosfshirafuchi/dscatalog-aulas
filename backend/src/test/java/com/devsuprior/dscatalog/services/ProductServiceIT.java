@@ -2,7 +2,7 @@ package com.devsuprior.dscatalog.services;
 
 import com.devsuprior.dscatalog.dto.ProductDTO;
 import com.devsuprior.dscatalog.exceptions.ResourceNotFoundException;
-import com.devsuprior.dscatalog.repositories.ProductRepository;
+import com.devsuprior.dscatalog.repositories.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ public class ProductServiceIT {
     private ProductService service;
 
     @Autowired
-    private ProductRepository repository;
+    private UserRepository repository;
 
     private Long existingId;
     private Long nonExistingId;
