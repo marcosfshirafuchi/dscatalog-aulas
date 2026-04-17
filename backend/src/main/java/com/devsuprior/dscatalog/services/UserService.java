@@ -1,9 +1,6 @@
 package com.devsuprior.dscatalog.services;
 
-import com.devsuprior.dscatalog.dto.CategoryDTO;
-import com.devsuprior.dscatalog.dto.ProductDTO;
-import com.devsuprior.dscatalog.dto.RoleDTO;
-import com.devsuprior.dscatalog.dto.UserDTO;
+import com.devsuprior.dscatalog.dto.*;
 import com.devsuprior.dscatalog.entities.Category;
 import com.devsuprior.dscatalog.entities.Product;
 import com.devsuprior.dscatalog.entities.Role;
@@ -17,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +23,9 @@ import java.util.Optional;
 
 @Service
 public class UserService {
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     //Coloca a anotação Autowired para fazer a injeção de dependencia da classe ProductRepository
     @Autowired
@@ -56,9 +57,10 @@ public class UserService {
     }
 
     @Transactional
-    public UserDTO insert(UserDTO dto) {
+    public UserDTO insert(UserInsertDTO dto) {
         User entity = new User();
         copyDtoToEntity(dto, entity);
+        entity.setPassword(passwordEncoder.encode(dto.getPassword()));
         entity = repository.save(entity);
         return new UserDTO(entity);
     }
