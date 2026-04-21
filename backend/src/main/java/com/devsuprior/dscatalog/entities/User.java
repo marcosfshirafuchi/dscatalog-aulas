@@ -1,7 +1,6 @@
 package com.devsuprior.dscatalog.entities;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.Fetch;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -23,7 +22,7 @@ public class User implements Serializable {
     private String firstName;
     private String lastName;
     
-    // @Column(unique = true): Opcionalmente poderia ser usado para garantir que o email seja único no banco.
+    @Column(unique = true)//: Vai ser usado para garantir que o email seja único no banco.
     private String email;
     private String password;
 

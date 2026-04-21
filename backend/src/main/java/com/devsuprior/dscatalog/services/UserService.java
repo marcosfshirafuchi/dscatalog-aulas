@@ -1,8 +1,8 @@
 package com.devsuprior.dscatalog.services;
 
-import com.devsuprior.dscatalog.dto.*;
-import com.devsuprior.dscatalog.entities.Category;
-import com.devsuprior.dscatalog.entities.Product;
+import com.devsuprior.dscatalog.dto.RoleDTO;
+import com.devsuprior.dscatalog.dto.UserDTO;
+import com.devsuprior.dscatalog.dto.UserInsertDTO;
 import com.devsuprior.dscatalog.entities.Role;
 import com.devsuprior.dscatalog.entities.User;
 import com.devsuprior.dscatalog.exceptions.DatabaseException;
