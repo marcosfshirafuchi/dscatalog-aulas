@@ -1,12 +1,12 @@
-package com.devsuperior.dscatalog.repositories;
+package com.devsuperior.dscatalog.repositories; // Declaração do pacote onde a interface está localizada.
 
-import com.devsuperior.dscatalog.entities.User;
-import com.devsuperior.dscatalog.projections.UserDetailsProjection;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
+import com.devsuperior.dscatalog.entities.User; // Importa a classe da entidade User.
+import com.devsuperior.dscatalog.projections.UserDetailsProjection; // Importa a interface de projeção para detalhes do usuário.
+import org.springframework.data.jpa.repository.JpaRepository; // Importa a interface base do Spring Data JPA para repositórios.
+import org.springframework.data.jpa.repository.Query; // Importa a anotação @Query para definir consultas personalizadas.
+import org.springframework.stereotype.Repository; // Importa a anotação @Repository.
 
-import java.util.List;
+import java.util.List; // Importa a classe List do pacote java.util.
 
 // @Repository: Indica que esta interface é um componente de repositório do Spring,
 // responsável por operações de acesso a dados para a entidade User.

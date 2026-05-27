@@ -131,8 +131,9 @@ public class UserService implements UserDetailsService {
         entity.getRoles().clear();
         // Itera sobre os RoleDTOs do DTO.
         for (RoleDTO roleDto: dto.getRoles()){
-            // Obtém uma referência à entidade Role correspondente ao ID do RoleDTO.
-            Role role = roleRepository.getReferenceById(roleDto.getId());
+            // Busca a entidade Role pelo ID do RoleDTO. Usa findById para carregar a entidade completamente e lança uma exceção se não encontrada.
+            Role role = roleRepository.findById(roleDto.getId())
+                                      .orElseThrow(() -> new ResourceNotFoundException("Role not found with id: " + roleDto.getId()));
             // Adiciona a entidade Role à coleção de roles do usuário.
             entity.getRoles().add(role);
         }
