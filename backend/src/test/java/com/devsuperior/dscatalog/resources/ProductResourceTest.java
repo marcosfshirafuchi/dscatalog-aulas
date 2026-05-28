@@ -4,18 +4,19 @@ import com.devsuperior.dscatalog.dto.ProductDTO;
 import com.devsuperior.dscatalog.resources.exceptions.ResourceNotFoundException;
 import com.devsuperior.dscatalog.services.ProductService;
 import com.devsuperior.dscatalog.tests.Factory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -25,9 +26,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// @WebMvcTest: Carrega o contexto WEB para testar apenas a camada de Controller (ProductResource).
-// Não carrega o contexto completo da aplicação (Repositories, Services reais, etc).
-@WebMvcTest(ProductResource.class)
+// @WebMvcTest: Anotação de teste do Spring Boot que foca apenas nos componentes da camada web (controladores).
+// Ela carrega apenas o contexto necessário para testar controladores MVC, sem carregar o contexto completo da aplicação.
+// value = ProductResource.class: Indica que apenas o controlador ProductResource.class deve ser carregado no contexto de teste.
+// excludeAutoConfiguration = {SecurityAutoConfiguration.class}: Exclui a configuração automática de segurança do Spring Security.
+// Isso é útil para testar o controlador sem a necessidade de autenticação, simplificando o teste de endpoints públicos ou a lógica de autorização específica do controlador.
+@WebMvcTest(value = ProductResource.class, excludeAutoConfiguration = {SecurityAutoConfiguration.class})
 public class ProductResourceTest {
 
     // MockMvc: Objeto principal para realizar chamadas simuladas aos endpoints REST.
@@ -36,7 +40,7 @@ public class ProductResourceTest {
 
     // @MockitoBean: Cria um Mock do ProductService e o injeta no contexto do Spring,
     // substituindo o bean real. Isso permite simular o comportamento do serviço.
-    @MockitoBean
+    @MockBean
     private ProductService service;
 
     // ObjectMapper: Utilitário para converter objetos Java em JSON e vice-versa.
