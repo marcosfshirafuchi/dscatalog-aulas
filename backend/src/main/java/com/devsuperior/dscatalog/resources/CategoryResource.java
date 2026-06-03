@@ -3,14 +3,13 @@ package com.devsuperior.dscatalog.resources;
 import com.devsuperior.dscatalog.dto.CategoryDTO;
 import com.devsuperior.dscatalog.services.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 //Controla as requisições da api
 // @RestController: Indica que esta classe é um controlador REST, capaz de lidar com requisições HTTP.
@@ -24,16 +23,25 @@ public class CategoryResource {
     @Autowired
     private CategoryService service;
 
-    // @GetMapping: Mapeia requisições HTTP GET para o caminho base "/categories".
-    // public ResponseEntity<Page<CategoryDTO>> findAll(Pageable pageable): Retorna uma lista paginada de categorias.
     @GetMapping
-    public ResponseEntity<Page<CategoryDTO>> findAll(Pageable pageable){
+    public ResponseEntity<List<CategoryDTO>> findAll(){
         // O list está buscando os registros da classe CategoryService pelo método findAll
         // Chama o serviço para buscar todas as categorias de forma paginada.
-        Page<CategoryDTO> list = service.findAllPaged(pageable);
+        List<CategoryDTO> list = service.findAll();
         // Retorna uma resposta HTTP 200 OK com a lista de categorias no corpo.
         return ResponseEntity.ok().body(list);
     }
+
+//    // @GetMapping: Mapeia requisições HTTP GET para o caminho base "/categories".
+//    // public ResponseEntity<Page<CategoryDTO>> findAll(Pageable pageable): Retorna uma lista paginada de categorias.
+//    @GetMapping
+//    public ResponseEntity<Page<CategoryDTO>> findAll(Pageable pageable){
+//        // O list está buscando os registros da classe CategoryService pelo método findAll
+//        // Chama o serviço para buscar todas as categorias de forma paginada.
+//        Page<CategoryDTO> list = service.findAllPaged(pageable);
+//        // Retorna uma resposta HTTP 200 OK com a lista de categorias no corpo.
+//        return ResponseEntity.ok().body(list);
+//    }
 
     // @GetMapping(value = "/{id}"): Mapeia requisições HTTP GET para "/categories/{id}", onde {id} é um parâmetro de caminho.
     // public ResponseEntity<CategoryDTO> findById(@PathVariable Long id): Retorna uma categoria específica pelo ID.

@@ -8,12 +8,11 @@ import com.devsuperior.dscatalog.repositories.CategoryRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -24,19 +23,26 @@ public class CategoryService {
     private CategoryRepository repository;
 
     @Transactional(readOnly = true)
-    public Page<CategoryDTO> findAllPaged(Pageable pageable) {
-        Page<Category> list = repository.findAll(pageable);
+    public List<CategoryDTO> findAll() {
+        List<Category> list = repository.findAll();
         //Fazendo com lambda
-        //O map faz a conversão de cada elemento Category em CategoryDTO
-        Page<CategoryDTO> listDto = list.map( x-> new CategoryDTO(x));
-        //Fazendo com for
-        /* Uma forma de colocar os elementos Category na lista Category DTO
-        List<CategoryDTO> listDto = new ArrayList<>();
-        for(Category cat: list){
-            listDto.add(new CategoryDTO(cat));
-        }*/
-        return listDto;
+       return list.stream().map( x-> new CategoryDTO(x)).toList();
     }
+
+//    @Transactional(readOnly = true)
+//    public Page<CategoryDTO> findAllPaged(Pageable pageable) {
+//        Page<Category> list = repository.findAll(pageable);
+//        //Fazendo com lambda
+//        //O map faz a conversão de cada elemento Category em CategoryDTO
+//        Page<CategoryDTO> listDto = list.map( x-> new CategoryDTO(x));
+//        //Fazendo com for
+//        /* Uma forma de colocar os elementos Category na lista Category DTO
+//        List<CategoryDTO> listDto = new ArrayList<>();
+//        for(Category cat: list){
+//            listDto.add(new CategoryDTO(cat));
+//        }*/
+//        return listDto;
+//    }
     @Transactional(readOnly = true)
     public CategoryDTO findById(Long id) {
         Optional<Category> obj = repository.findById(id);
