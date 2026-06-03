@@ -12,4 +12,5 @@ import org.springframework.stereotype.Repository; // Importa a anotação @Repos
 // Estende JpaRepository, fornecendo métodos CRUD (Create, Read, Update, Delete)
 // e paginação para a entidade Product, onde Product é o tipo da entidade e Long é o tipo do ID.
 public interface ProductRepository extends JpaRepository<Product, Long> {
+
 }
