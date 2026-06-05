@@ -1,16 +1,17 @@
 package com.devsuperior.dscatalog.resources;
 
 import com.devsuperior.dscatalog.dto.ProductDTO;
+import com.devsuperior.dscatalog.projections.ProjectProjection;
 import com.devsuperior.dscatalog.services.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import org.springframework.data.domain.Pageable; // <-- CORRIGIDO: Importação correta do Pageable
 import java.net.URI;
 
 //Controla as requisições da api
@@ -28,12 +29,12 @@ public class ProductResource {
     // @GetMapping: Mapeia requisições HTTP GET para o caminho base "/products".
     // public ResponseEntity<Page<ProductDTO>> findAll(Pageable pageable): Retorna uma lista paginada de produtos.
     @GetMapping
-    public ResponseEntity<Page<ProductDTO>> findAll(Pageable pageable){
+    public ResponseEntity<Page<ProjectProjection>> findAll(Pageable pageable){
 
         // PARAMETROS: page, size, sort
         // O list está buscando os registros da classe ProductService pelo método findAll
         // Chama o serviço para buscar todos os produtos de forma paginada.
-        Page<ProductDTO> list = service.findAllPaged(pageable);
+        Page<ProjectProjection> list = service.testQuery(pageable);
         // Retorna uma resposta HTTP 200 OK com a lista de produtos no corpo.
         return ResponseEntity.ok().body(list);
     }

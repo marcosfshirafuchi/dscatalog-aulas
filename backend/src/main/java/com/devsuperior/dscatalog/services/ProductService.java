@@ -4,6 +4,7 @@ import com.devsuperior.dscatalog.dto.CategoryDTO;
 import com.devsuperior.dscatalog.dto.ProductDTO;
 import com.devsuperior.dscatalog.entities.Category;
 import com.devsuperior.dscatalog.entities.Product;
+import com.devsuperior.dscatalog.projections.ProjectProjection;
 import com.devsuperior.dscatalog.resources.exceptions.DatabaseException;
 import com.devsuperior.dscatalog.resources.exceptions.ResourceNotFoundException;
 import com.devsuperior.dscatalog.repositories.CategoryRepository;
@@ -12,11 +13,13 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Pageable; // Garante que esta importação esteja presente
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 
 @Service
@@ -96,5 +99,10 @@ public class ProductService {
             Category category = categoryRepository.getReferenceById(catDto.getId());
             entity.getCategories().add(category);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProjectProjection> testQuery(Pageable pageable) { // <-- CORRIGIDO: Tipo do Pageable
+        return repository.searchProducts(Arrays.asList(1L, 3L), "ma", pageable);
     }
 }
