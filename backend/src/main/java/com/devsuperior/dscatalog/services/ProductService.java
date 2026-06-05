@@ -103,6 +103,6 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public Page<ProjectProjection> testQuery(Pageable pageable) { // <-- CORRIGIDO: Tipo do Pageable
-        return repository.searchProducts(Arrays.asList(1L, 3L), "ma", pageable);
+        return repository.searchProducts(Arrays.asList(), "", pageable);
     }
 }
