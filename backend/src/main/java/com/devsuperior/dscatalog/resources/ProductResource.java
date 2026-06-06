@@ -29,12 +29,15 @@ public class ProductResource {
     // @GetMapping: Mapeia requisições HTTP GET para o caminho base "/products".
     // public ResponseEntity<Page<ProductDTO>> findAll(Pageable pageable): Retorna uma lista paginada de produtos.
     @GetMapping
-    public ResponseEntity<Page<ProjectProjection>> findAll(Pageable pageable){
+    public ResponseEntity<Page<ProjectProjection>> findAll(
+            @RequestParam(value = "name", defaultValue = "") String name,
+            @RequestParam(value = "categoryId", defaultValue = "0")String categoryId,
+            Pageable pageable){
 
         // PARAMETROS: page, size, sort
         // O list está buscando os registros da classe ProductService pelo método findAll
         // Chama o serviço para buscar todos os produtos de forma paginada.
-        Page<ProjectProjection> list = service.testQuery(pageable);
+        Page<ProjectProjection> list = service.findAllPaged(name, categoryId, pageable);
         // Retorna uma resposta HTTP 200 OK com a lista de produtos no corpo.
         return ResponseEntity.ok().body(list);
     }
