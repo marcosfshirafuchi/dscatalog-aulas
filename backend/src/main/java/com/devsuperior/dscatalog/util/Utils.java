@@ -1,10 +1,8 @@
 package com.devsuperior.dscatalog.util;
 
-// Entidade Product.
-import com.devsuperior.dscatalog.entities.Product;
-
-// Projeção utilizada na consulta paginada.
-import com.devsuperior.dscatalog.projections.ProjectProjection;
+// Importa a interface de projeção genérica.
+// Qualquer objeto que implemente essa interface deve possuir um método getId().
+import com.devsuperior.dscatalog.projections.IdProjection;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,96 +12,128 @@ import java.util.Map;
 /**
  * Classe utilitária que contém métodos auxiliares reutilizáveis.
  *
- * Neste caso, ela possui um método responsável por reorganizar
- * uma lista de produtos mantendo a mesma ordem da consulta paginada.
+ * O objetivo desta classe é fornecer funcionalidades genéricas
+ * que podem ser utilizadas em diferentes partes da aplicação.
  */
 public class Utils {
 
     /**
-     * Reorganiza a lista de produtos para manter a mesma ordem
-     * retornada pela consulta paginada.
+     * Reorganiza uma lista de objetos mantendo a mesma ordem
+     * retornada por uma consulta paginada.
      *
-     * Cenário:
+     * Essa técnica é muito utilizada quando:
      *
-     * 1) Primeiro fazemos uma consulta paginada que retorna apenas
-     *    os IDs dos produtos (ProjectProjection).
+     * 1) Realizamos uma consulta paginada retornando apenas IDs.
+     *
+     * 2) Em seguida fazemos uma segunda consulta utilizando
+     *    JOIN FETCH para carregar os relacionamentos.
+     *
+     * 3) O banco de dados pode retornar os registros em uma
+     *    ordem diferente da consulta original.
+     *
+     * 4) Este método reorganiza os objetos para preservar
+     *    a ordem correta da paginação.
      *
      * Exemplo:
      *
+     * Lista original (ordered):
+     *
      * [3, 7, 1]
      *
-     * 2) Depois fazemos uma segunda consulta utilizando JOIN FETCH
-     *    para carregar os produtos completos com suas categorias.
-     *
-     * Porém o banco pode retornar os produtos em outra ordem:
+     * Lista carregada com JOIN FETCH (unordered):
      *
      * [1, 3, 7]
      *
-     * 3) Este método reorganiza os produtos para que fiquem novamente:
+     * Resultado:
      *
      * [3, 7, 1]
      *
-     * Dessa forma a paginação permanece correta.
+     * @param <ID>
+     * Tipo do identificador da entidade.
+     *
+     * Exemplos:
+     * Long
+     * Integer
+     * UUID
+     * String
      *
      * @param ordered
-     * Lista original retornada pela consulta paginada.
-     * Contém a ordem correta dos produtos.
+     * Lista contendo os objetos na ordem correta.
      *
      * @param unordered
-     * Lista de produtos carregados com JOIN FETCH.
-     * Pode estar em ordem diferente da paginação.
+     * Lista contendo os mesmos objetos, porém possivelmente
+     * em ordem diferente.
      *
      * @return
-     * Lista de produtos reorganizada na ordem correta.
+     * Lista reorganizada mantendo a ordem da lista original.
      */
-    public static List<Product> replace(
-            List<ProjectProjection> ordered,
-            List<Product> unordered) {
+    public static <ID> List<? extends IdProjection<ID>> replace(
+            List<? extends IdProjection<ID>> ordered,
+            List<? extends IdProjection<ID>> unordered) {
 
         /**
-         * HashMap utilizado para permitir busca rápida dos produtos.
+         * HashMap utilizado para realizar buscas rápidas.
          *
          * Estrutura:
          *
-         * chave = id do produto
-         * valor = objeto Product
+         * chave -> ID do objeto
+         * valor -> objeto correspondente
          *
          * Exemplo:
          *
          * {
-         *   1 -> Product(1),
-         *   3 -> Product(3),
-         *   7 -> Product(7)
+         *   1 -> Produto A,
+         *   2 -> Produto B,
+         *   3 -> Produto C
          * }
+         *
+         * A vantagem do HashMap é que a busca ocorre
+         * praticamente em tempo constante O(1).
          */
-        Map<Long, Product> map = new HashMap<>();
+        Map<ID, IdProjection<ID>> map = new HashMap<>();
 
         /**
-         * Percorre todos os produtos carregados do banco
-         * e os adiciona no mapa.
+         * Percorre a lista desordenada.
+         *
+         * Cada objeto é armazenado no HashMap
+         * utilizando seu ID como chave.
          */
-        for (Product obj : unordered) {
+        for (IdProjection<ID> obj : unordered) {
             map.put(obj.getId(), obj);
         }
 
         /**
-         * Lista que armazenará o resultado final
+         * Lista que armazenará os objetos
          * na ordem correta.
          */
-        List<Product> result = new ArrayList<>();
+        List<IdProjection<ID>> result = new ArrayList<>();
 
         /**
-         * Percorre a lista paginada original.
+         * Percorre a lista original ordenada.
          *
-         * Como ela possui a ordem correta dos IDs,
-         * utilizamos cada ID para buscar o Product
+         * Como ela contém a sequência correta dos IDs,
+         * utilizamos cada ID para localizar o objeto
          * correspondente dentro do HashMap.
          */
-        for (ProjectProjection obj : ordered) {
+        for (IdProjection<ID> obj : ordered) {
 
             /**
-             * Recupera o produto pelo ID e adiciona
-             * ao resultado na posição correta.
+             * Busca o objeto pelo ID.
+             *
+             * Exemplo:
+             *
+             * ordered:
+             * [3, 7, 1]
+             *
+             * map:
+             * {
+             *   1 -> Produto A
+             *   3 -> Produto B
+             *   7 -> Produto C
+             * }
+             *
+             * Resultado:
+             * [Produto B, Produto C, Produto A]
              */
             result.add(map.get(obj.getId()));
         }

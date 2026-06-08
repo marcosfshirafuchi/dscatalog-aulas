@@ -1,7 +1,6 @@
 package com.devsuperior.dscatalog.projections;
 
-public interface ProjectProjection {
-    //Dados que vão retornar
-    Long getId();
+public interface ProjectProjection extends IdProjection<Long> {
+    //Dados que vão retornar do banco de dados
     String getName();
 }

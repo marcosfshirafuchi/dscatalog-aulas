@@ -188,21 +188,75 @@ public class ProductService {
                     .toList();
         }
 
-        // Faz a busca paginada dos produtos usando projeção.
-        // A projeção ajuda a buscar apenas os dados necessários inicialmente.
+        // Faz a busca paginada utilizando uma projeção.
+        //
+        // Nesta etapa NÃO carregamos o objeto Product completo.
+        // Apenas os campos necessários da projeção são retornados.
+        //
+        // Isso é importante porque não é recomendado utilizar JOIN FETCH
+        // diretamente em consultas paginadas com relacionamentos @ManyToMany,
+        // pois isso pode gerar duplicidades e problemas de paginação.
+        //
+        // O resultado desta consulta contém apenas os IDs dos produtos
+        // que pertencem à página solicitada.
         Page<ProjectProjection> page = repository.searchProducts(categoryIds, name, pageable);
 
-        // Extrai os ids dos produtos encontrados na busca paginada.
+        // Extrai os IDs dos produtos retornados pela consulta paginada.
+        //
+        // Exemplo:
+        //
+        // Página retornada:
+        // [3, 7, 1]
+        //
+        // Resultado:
+        //
+        // [3L, 7L, 1L]
         List<Long> productIds = page.map(x -> x.getId()).toList();
 
-        // Busca os produtos completos com suas categorias.
-        // Isso evita problemas de N+1 queries ao carregar categorias.
+        // Agora que sabemos exatamente quais produtos pertencem à página,
+        // realizamos uma segunda consulta.
+        //
+        // Desta vez utilizamos JOIN FETCH para carregar os produtos
+        // juntamente com suas categorias.
+        //
+        // Isso evita o problema conhecido como:
+        //
+        // N + 1 Queries
+        //
+        // Sem o JOIN FETCH:
+        //
+        // 1 consulta para buscar produtos
+        // +
+        // N consultas para buscar categorias
+        //
+        // Com JOIN FETCH:
+        //
+        // Apenas uma consulta carrega tudo.
         List<Product> entities = repository.searchProductsWithCategories(productIds);
 
-        // Reorganiza a lista de entidades para manter a mesma ordem da paginação original.
-        entities = Utils.replace(page.getContent(), entities);
+        // IMPORTANTE:
+        //
+        // O banco de dados não garante que os registros retornados
+        // pela consulta com JOIN FETCH estarão na mesma ordem da
+        // consulta paginada original.
+        //
+        // Exemplo:
+        //
+        // Consulta paginada:
+        // [3, 7, 1]
+        //
+        // Consulta JOIN FETCH:
+        // [1, 3, 7]
+        //
+        // Para resolver esse problema utilizamos o método Utils.replace(),
+        // que reorganiza os elementos utilizando os IDs como referência,
+        // preservando a ordem correta da paginação.
+        entities = (List<Product>) Utils.replace(page.getContent(), entities);
 
-        // Converte a lista de Product para ProductDTO, incluindo as categorias.
+        // Converte cada entidade Product para ProductDTO.
+        //
+        // Neste momento as categorias já estão carregadas,
+        // evitando consultas adicionais ao banco.
         List<ProductDTO> dtos = entities.stream()
                 .map(p -> new ProductDTO(p, p.getCategories()))
                 .toList();
@@ -213,7 +267,15 @@ public class ProductService {
         // - o total de elementos encontrados
         Page<ProductDTO> pageDTO = new PageImpl<>(dtos, page.getPageable(), page.getTotalElements());
 
-        // Retorna a página final de produtos em formato DTO.
+        // Cria uma nova página de DTOs.
+        //
+        // Mantemos:
+        //
+        // - Os DTOs convertidos
+        // - As informações de paginação (Pageable)
+        //
+        // Dessa forma o Controller recebe uma página completa
+        // exatamente como o Spring Data espera.
         return pageDTO;
     }
 }
