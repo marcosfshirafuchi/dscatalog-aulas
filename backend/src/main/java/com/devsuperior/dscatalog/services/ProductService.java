@@ -4,7 +4,7 @@ import com.devsuperior.dscatalog.dto.CategoryDTO;
 import com.devsuperior.dscatalog.dto.ProductDTO;
 import com.devsuperior.dscatalog.entities.Category;
 import com.devsuperior.dscatalog.entities.Product;
-import com.devsuperior.dscatalog.projections.ProjectProjection;
+import com.devsuperior.dscatalog.projections.ProductProjection;
 import com.devsuperior.dscatalog.resources.exceptions.DatabaseException;
 import com.devsuperior.dscatalog.resources.exceptions.ResourceNotFoundException;
 import com.devsuperior.dscatalog.repositories.CategoryRepository;
@@ -199,7 +199,7 @@ public class ProductService {
         //
         // O resultado desta consulta contém apenas os IDs dos produtos
         // que pertencem à página solicitada.
-        Page<ProjectProjection> page = repository.searchProducts(categoryIds, name, pageable);
+        Page<ProductProjection> page = repository.searchProducts(categoryIds, name, pageable);
 
         // Extrai os IDs dos produtos retornados pela consulta paginada.
         //

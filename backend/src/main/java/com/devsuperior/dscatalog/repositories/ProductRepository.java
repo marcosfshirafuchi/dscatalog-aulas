@@ -4,7 +4,7 @@ package com.devsuperior.dscatalog.repositories;
 import com.devsuperior.dscatalog.entities.Product;
 
 // Importa a projeção utilizada para retornar apenas os campos necessários da consulta.
-import com.devsuperior.dscatalog.projections.ProjectProjection;
+import com.devsuperior.dscatalog.projections.ProductProjection;
 
 // Classes utilizadas para paginação.
 import org.springframework.data.domain.Page;
@@ -62,52 +62,32 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query(
             nativeQuery = true,
             value = """
-
-                SELECT * FROM(
-                    SELECT DISTINCT tb_product.id, tb_product.name
-                    FROM tb_product
-                    INNER JOIN tb_product_category
-                        ON tb_product.id = tb_product_category.product_id
-
-                    WHERE (
-                        :categoryIds IS NULL
-                        OR tb_product_category.category_id IN :categoryIds
-                    )
-
-                    AND LOWER(tb_product.name)
-                        LIKE LOWER(CONCAT('%', :name, '%'))
-
-                ) AS tb_result
-
-                """,
+            SELECT * FROM (
+                SELECT DISTINCT tb_product.id, tb_product.name
+                FROM tb_product
+                INNER JOIN tb_product_category
+                    ON tb_product.id = tb_product_category.product_id
+                WHERE (:categoryIds IS NULL OR tb_product_category.category_id IN :categoryIds)
+                AND LOWER(tb_product.name) LIKE LOWER(CONCAT('%', :name, '%'))
+                ORDER BY tb_product.name
+            ) AS tb_result
+            """,
             countQuery = """
-
-                SELECT COUNT(*) FROM(
-                    SELECT DISTINCT tb_product.id, tb_product.name
-                    FROM tb_product
-                    INNER JOIN tb_product_category
-                        ON tb_product.id = tb_product_category.product_id
-
-                    WHERE (
-                        :categoryIds IS NULL
-                        OR tb_product_category.category_id IN :categoryIds
-                    )
-
-                    AND LOWER(tb_product.name)
-                        LIKE LOWER(CONCAT('%', :name, '%'))
-
-                    ORDER BY tb_product.name
-
-                ) AS tb_result
-
-                """
+            SELECT COUNT(*) FROM (
+                SELECT DISTINCT tb_product.id, tb_product.name
+                FROM tb_product
+                INNER JOIN tb_product_category
+                    ON tb_product.id = tb_product_category.product_id
+                WHERE (:categoryIds IS NULL OR tb_product_category.category_id IN :categoryIds)
+                AND LOWER(tb_product.name) LIKE LOWER(CONCAT('%', :name, '%'))
+            ) AS tb_result
+            """
     )
-    Page<ProjectProjection> searchProducts(
+    Page<ProductProjection> searchProducts(
             List<Long> categoryIds,
             String name,
             Pageable pageable
     );
-
     /**
      * Busca os produtos juntamente com suas categorias.
      *
@@ -145,7 +125,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             SELECT obj
             FROM Product obj
             JOIN FETCH obj.categories
-            WHERE obj.id IN :productIds
+            WHERE obj.id IN :productIds ORDER BY obj.name
             """)
     List<Product> searchProductsWithCategories(List<Long> productIds);
 }
