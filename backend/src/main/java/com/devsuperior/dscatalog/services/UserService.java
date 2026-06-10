@@ -25,15 +25,44 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-// @Service: Indica que esta classe é um componente de serviço do Spring,
-// responsável pela lógica de negócio e transações.
-// Implements UserDetailsService: Indica que esta classe é responsável por carregar
-// detalhes do usuário para autenticação e autorização do Spring Security.
+/**
+ * Service responsável pelas regras de negócio relacionadas aos usuários.
+ *
+ * Além das operações CRUD (Create, Read, Update e Delete),
+ * esta classe também implementa UserDetailsService,
+ * que é a interface utilizada pelo Spring Security
+ * para localizar usuários durante o processo de autenticação.
+ *
+ * Fluxo de autenticação:
+ *
+ * Login → UserDetailsService → Banco de Dados
+ *       → Usuário encontrado
+ *       → Senha validada
+ *       → Token gerado
+ */
 @Service
 public class UserService implements UserDetailsService {
 
-    // @Autowired: Injeta uma instância de PasswordEncoder (configurada em AppConfig)
-    // para codificar senhas antes de salvá-las no banco de dados.
+
+    /**
+     * Responsável por criptografar senhas antes de serem
+     * armazenadas no banco de dados.
+     *
+     * Exemplo:
+     *
+     * Senha digitada:
+     *
+     * 123456
+     *
+     * Senha armazenada:
+     *
+     * $2a$10$TjN3K....
+     *
+     * Isso aumenta significativamente a segurança da aplicação.
+     *
+     * O Spring Security posteriormente compara a senha digitada
+     * com o hash armazenado utilizando o método matches().
+     */
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -74,7 +103,39 @@ public class UserService implements UserDetailsService {
         User entity = new User();
         // Copia os dados do DTO para a entidade User.
         copyDtoToEntity(dto, entity);
-        // Codifica a senha do DTO usando o PasswordEncoder e a define na entidade.
+
+        /**
+         * Todo usuário criado através deste endpoint
+         * recebe automaticamente o perfil ROLE_OPERATOR.
+         *
+         * Isso garante que o usuário tenha pelo menos
+         * uma permissão básica dentro do sistema.
+         *
+         * Exemplo:
+         *
+         * ADMIN → criado manualmente
+         * OPERATOR → criado pelo cadastro padrão
+         */
+        entity.getRoles().clear();
+
+        Role role = roleRepository.findByAuthority("ROLE_OPERATOR");
+
+        entity.getRoles().add(role);
+
+        /**
+         * A senha nunca deve ser salva em texto puro.
+         *
+         * Antes de persistir o usuário, a senha é criptografada
+         * utilizando o algoritmo configurado no PasswordEncoder.
+         *
+         * Exemplo:
+         *
+         * Entrada:
+         * senha123
+         *
+         * Saída:
+         * $2a$10$Z3R....
+         */
         entity.setPassword(passwordEncoder.encode(dto.getPassword()));
         // Salva a nova entidade User no banco de dados.
         entity = repository.save(entity);
@@ -85,8 +146,18 @@ public class UserService implements UserDetailsService {
     // @Transactional: Indica que o método é transacional.
     public UserDTO update(Long id, UserUpdateDTO dto) {
         try {
-            // getReferenceById: Obtém uma referência à entidade User sem carregá-la completamente do banco.
-            // Isso é útil para atualizações, pois o JPA pode gerenciar a entidade.
+            /**
+             * getReferenceById() retorna um proxy gerenciado pelo JPA.
+             *
+             * Diferente do findById(), ele não realiza imediatamente
+             * uma consulta ao banco.
+             *
+             * A consulta só será executada quando algum atributo
+             * da entidade for acessado.
+             *
+             * Essa abordagem costuma ser mais eficiente em operações
+             * de atualização.
+             */
             User entity = repository.getReferenceById(id);
             // Copia os dados do DTO para a entidade User.
             copyDtoToEntity(dto, entity);
@@ -105,7 +176,14 @@ public class UserService implements UserDetailsService {
     // Se não houver uma transação, ele será executado sem uma.
     // No entanto, para operações de exclusão, o Spring Data JPA geralmente exige uma transação.
     public void delete(Long id) {
-        // Verifica se o usuário com o ID fornecido existe.
+        /**
+         * Verificação preventiva.
+         *
+         * Caso o registro não exista,
+         * evitamos executar um DELETE desnecessário
+         * e retornamos uma mensagem mais amigável
+         * para a API.
+         */
         if (!repository.existsById(id)) {
             // Se não existir, lança uma ResourceNotFoundException.
             throw new ResourceNotFoundException("Recurso não encotntrado");
@@ -127,7 +205,15 @@ public class UserService implements UserDetailsService {
         entity.setLastName(dto.getLastName());
         entity.setEmail(dto.getEmail());
 
-        // Limpa os roles existentes da entidade para adicionar os novos do DTO.
+        /**
+         * Remove todas as roles atuais do usuário.
+         *
+         * Isso é importante principalmente durante
+         * operações de atualização.
+         *
+         * Após a limpeza, os perfis recebidos pelo DTO
+         * serão adicionados novamente.
+         */
         entity.getRoles().clear();
         // Itera sobre os RoleDTOs do DTO.
         for (RoleDTO roleDto: dto.getRoles()){
@@ -139,23 +225,78 @@ public class UserService implements UserDetailsService {
         }
     }
 
-    // loadUserByUsername: Implementação do método da interface UserDetailsService.
-    // Usado pelo Spring Security para carregar os detalhes de um usuário durante o processo de autenticação.
+    /**
+     * Método obrigatório da interface UserDetailsService.
+     *
+     * O Spring Security chama este método automaticamente
+     * durante o processo de autenticação.
+     *
+     * Exemplo:
+     *
+     * POST /oauth2/token
+     *
+     * username = maria@gmail.com
+     * password = 123456
+     *
+     * O Spring chama:
+     *
+     * loadUserByUsername("maria@gmail.com")
+     *
+     * Este método retorna:
+     *
+     * - email
+     * - senha criptografada
+     * - roles/perfis
+     *
+     * que serão utilizados para autenticar o usuário.
+     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         // Busca o usuário e seus roles pelo email (username) usando uma projeção personalizada.
         List<UserDetailsProjection> result = repository.searchUserAndRolesByEmail(username);
-        // Se nenhum resultado for encontrado, o email não existe.
+        /**
+         * Caso nenhum registro seja encontrado,
+         * o Spring Security interrompe o processo
+         * de autenticação e retorna erro.
+         */
         if (result.size() == 0) {
             throw new UsernameNotFoundException("Email not found");
         }
-        // Cria uma nova instância de User (entidade) e preenche com os dados da projeção.
+        /**
+         * Reconstrói o objeto User utilizando os dados
+         * retornados pela projeção.
+         *
+         * Como a consulta retorna múltiplas linhas
+         * (uma para cada perfil),
+         * precisamos montar manualmente o usuário
+         * e adicionar todas as roles encontradas.
+         */
         User user = new User();
         user.setEmail(username);
         user.setPassword(result.get(0).getPassword()); // A senha é a mesma para todas as projeções do mesmo usuário.
-        // Adiciona os roles do usuário com base nas projeções.
+        /**
+         * Adiciona cada perfil encontrado ao usuário.
+         *
+         * Exemplo:
+         *
+         * ROLE_OPERATOR
+         * ROLE_ADMIN
+         *
+         * Essas roles serão utilizadas posteriormente
+         * pelo Spring Security para autorização.
+         *
+         * Exemplos:
+         *
+         * hasRole("ADMIN")
+         * hasRole("OPERATOR")
+         */
         for (UserDetailsProjection projection : result) {
-            user.addRole(new Role(projection.getRoleId(), projection.getAuthority()));
+            user.addRole(
+                    new Role(
+                            projection.getRoleId(),
+                            projection.getAuthority()
+                    )
+            );
         }
         // Retorna a entidade User, que implementa UserDetails.
         return user;
