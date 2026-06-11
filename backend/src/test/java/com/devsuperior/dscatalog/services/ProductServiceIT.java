@@ -1,7 +1,8 @@
 package com.devsuperior.dscatalog.services;
 
 import com.devsuperior.dscatalog.dto.ProductDTO;
-import com.devsuperior.dscatalog.resources.exceptions.ResourceNotFoundException;
+import com.devsuperior.dscatalog.services.exceptions.ResourceNotFoundException;
+import com.devsuperior.dscatalog.repositories.ProductRepository; // Importação adicionada
 import com.devsuperior.dscatalog.repositories.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +25,10 @@ public class ProductServiceIT {
     private ProductService service;
 
     @Autowired
-    private UserRepository repository;
+    private ProductRepository productRepository; // Injeção do ProductRepository
+
+    @Autowired
+    private UserRepository repository; // Mantido, caso seja usado em outros testes não mostrados
 
     private Long existingId;
     private Long nonExistingId;
@@ -34,7 +38,8 @@ public class ProductServiceIT {
     void setUp() throws Exception {
         existingId = 1L;
         nonExistingId = 1000L;
-        countTotalProducts = 25L;
+        // CORREÇÃO: Obtém a contagem real de produtos do ProductRepository
+        countTotalProducts = productRepository.count();
     }
 
     @Test
@@ -48,7 +53,7 @@ public class ProductServiceIT {
 
         // ASSERT: declare o que deveria acontecer (resultado esperado)
         // Verifica se a contagem total de produtos diminuiu em 1
-        Assertions.assertEquals(countTotalProducts - 1, repository.count());
+        Assertions.assertEquals(countTotalProducts - 1, productRepository.count()); // Usando productRepository
     }
 
     @Test
