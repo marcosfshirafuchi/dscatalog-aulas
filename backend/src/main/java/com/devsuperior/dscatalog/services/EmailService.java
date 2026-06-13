@@ -27,9 +27,9 @@ public class EmailService {
             message.setSubject(subject);
             message.setText(body);
             emailSender.send(message);
-        } 
+        }
         catch (MailException e){
         	throw new EmailException("Failed to send email");
-        } 
+        }
     }
 }
