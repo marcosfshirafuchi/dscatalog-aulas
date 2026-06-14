@@ -129,6 +129,13 @@ public class UserResource {
         return ResponseEntity.ok().body(dto);
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_OPERATOR')")
+    @GetMapping(value = "/me")
+    public ResponseEntity<UserDTO> findMe(){
+        UserDTO dto = service.findMe();
+        return ResponseEntity.ok().body(dto);
+    }
+
     /**
      * Endpoint responsável pelo cadastro de usuários.
      *

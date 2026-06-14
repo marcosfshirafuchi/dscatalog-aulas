@@ -21,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -75,6 +76,9 @@ public class UserService implements UserDetailsService {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private AuthService authService;
+
     // @Transactional(readOnly = true): Indica que o método é transacional e apenas de leitura.
     // Otimiza a performance, pois não precisa gerenciar transações de escrita.
     public Page<UserDTO> findAllPaged(Pageable pageable) {
@@ -86,6 +90,13 @@ public class UserService implements UserDetailsService {
     }
 
     // @Transactional(readOnly = true): Indica que o método é transacional e apenas de leitura.
+    @Transactional(readOnly = true)
+    public UserDTO findMe() {
+        User entity = authService.authenticated();
+        return new UserDTO(entity);
+    }
+
+    @Transactional(readOnly = true)
     public UserDTO findById(Long id) {
         // Busca um usuário pelo ID. Retorna um Optional<User>.
         Optional<User> obj = repository.findById(id);
